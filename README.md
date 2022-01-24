@@ -4,20 +4,19 @@
 
 - npm install @reduxjs/toolkit
 
--src/
-  redux/
-  ├── ducks/                       # Sub-module name
-  │   ├── counter.js
-  │   ├── user.js
-  │   ├── userSlice.js
-  │   │  
-  │── sagas/
-  │   ├── handlers/
-  │   │   ├── user.js
-  │   ├── requests/ 
-  │   │   ├── user.js
-  │   │  
-  │── ├── rootReducer.js 
+-> src/redux/    
+
+-> redux/ducks/
+- redux/ducks/counter.js
+- redux/ducks/user.js
+- redux/ducks/userSlice.js
+
+-> redux/sagas/
+- redux/sagas/rootReducer.js
+->>  redux/sagas/handlers/
+- redux/sagas/handlers/user.js
+->>  redux/sagas/requests/
+- redux/sagas/requests/user.js
 
 -> index.js
 ```js
