@@ -1,70 +1,271 @@
-# Getting Started with Create React App
+### React Redux-Saga Redux-ToolKit
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[DEMO_LINK](https://codesandbox.io/s/redux-toolkit-saga-stoic-euler-cjhgx-0by78)
 
-## Available Scripts
+- npm install @reduxjs/toolkit
 
-In the project directory, you can run:
+-src/
+  redux/
+  ├── ducks/                       # Sub-module name
+  │   ├── counter.js
+  │   ├── user.js
+  │   ├── userSlice.js
+  │   │  
+  │── sagas/
+  │   ├── handlers/
+  │   │   ├── user.js
+  │   ├── requests/ 
+  │   │   ├── user.js
+  │   │  
+  │── ├── rootReducer.js 
 
-### `npm start`
+-> index.js
+```js
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import { Provider } from "react-redux";
+import store from "./redux/configureStore";
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+const rootElement = document.getElementById("root");
+ReactDOM.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>,
+  rootElement
+);
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
 
-### `npm test`
+-> App.js
+```js
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Counter from "./Counter";
+import { getUser } from "./redux/ducks/userSlice";
+import "./styles.css";
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+export default function App() {
+  const dispatch = useDispatch();
 
-### `npm run build`
+  useEffect(() => {
+    dispatch(getUser({ test: "hi", id: 1 }));
+  }, [dispatch]);
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  const user = useSelector((state) => state.user);
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  const count = useSelector((state) => state.counter.count);
+  const voters = [
+    "Anthony Sistilli ",
+    "Bob Smith",
+    "Stephanie Foo",
+    "Kevin Ma"
+  ];
+  return (
+    <div className="App">
+      {user && <h1> Hello, {user.firstName} </h1>}
+      <h1>Redux made easy</h1>
+      <h2> Total Votes: {count}</h2>
+      {voters.map((voter) => (
+        <Counter name={voter} />
+      ))}
+    </div>
+  );
+}
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
 
-### `npm run eject`
+-> redux/reducks/counter.js
+```js
+const INCREMENT = "increment";
+const DECREMENT = "decrement";
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+export const increment = () => ({
+  type: INCREMENT
+});
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+export const decrement = () => ({
+  type: DECREMENT
+});
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+const initialState = {
+  count: 0
+};
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+export default (state = initialState, action) => {
+  switch (action.type) {
+    case INCREMENT:
+      return { ...state, count: state.count + 1 };
+    case DECREMENT:
+      return { ...state, count: state.count - 1 };
+    default:
+      return state;
+  }
+};
+```
 
-## Learn More
+-> redux/ducks/user.js
+```js
+export const GET_USER = "GET_USER";
+const SET_USER = "SET_USER";
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export const getUser = () => ({
+  type: GET_USER
+});
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+export const setUser = (user) => ({
+  type: SET_USER,
+  user
+});
 
-### Code Splitting
+const initialState = {
+  user: undefined
+};
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+export default (state = initialState, action) => {
+  switch (action.type) {
+    case SET_USER:
+      const { user } = action;
+      return { ...state, user };
+    default:
+      return state;
+  }
+};
 
-### Analyzing the Bundle Size
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+-> redux/ducks/userSlice.js
+```js
+import { createSlice } from "@reduxjs/toolkit";
 
-### Making a Progressive Web App
+const userSlice = createSlice({
+  name: "user",
+  initialState: {},
+  reducers: {
+    getUser() {},
+    setUser(state, action) {
+      const userData = action.payload;
+      return { ...state, ...userData };
+    }
+  }
+});
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+export const { getUser, setUser } = userSlice.actions;
 
-### Advanced Configuration
+export default userSlice.reducer;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+-> redux/sagas/handlers/user.js
+```js
+import { call, put } from "redux-saga/effects";
+import { setUser } from "../../ducks/userSlice";
+import { requestGetUser } from "../requests/user";
 
-### Deployment
+export function* handleGetUser(action) {
+  try {
+    const response = yield call(requestGetUser);
+    const { data } = response;
+    yield put(setUser({ ...data }));
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
 
-### `npm run build` fails to minify
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+-> redux/sagas/requests/user.js
+```js
+import axios from "axios";
+
+export function requestGetUser() {
+  return axios.request({
+    method: "get",
+    url: "https://my-json-server.typicode.com/atothey/demo/user"
+  });
+}
+```
+
+
+-> redux/sagas/rootSaga.js
+```js
+
+import { takeLatest } from "redux-saga/effects";
+import { handleGetUser } from "./handlers/user";
+import { getUser } from "../ducks/userSlice";
+
+export function* watcherSaga() {
+  yield takeLatest(getUser.type, handleGetUser);
+}
+```
+
+
+-> redux/configureStore.js
+```js
+
+import {
+  configureStore,
+  combineReducers,
+  getDefaultMiddleware
+} from "@reduxjs/toolkit";
+import createSagaMiddleware from "redux-saga";
+import { watcherSaga } from "./sagas/rootSaga";
+import userReducer from "./ducks/userSlice";
+import counterReducer from "./ducks/counter";
+
+const sagaMiddleware = createSagaMiddleware();
+
+const reducer = combineReducers({
+  counter: counterReducer,
+  user: userReducer
+});
+
+const store = configureStore({
+  reducer,
+  middleware: [...getDefaultMiddleware({ thunk: false }), sagaMiddleware]
+});
+sagaMiddleware.run(watcherSaga);
+
+export default store;
+
+```
+
+
+-> Counter.jsx
+```js
+import React from "react";
+import { useDispatch } from "react-redux";
+import { decrement, increment } from "./redux/ducks/counter";
+
+const Counter = (props) => {
+  const { name } = props;
+  const dispatch = useDispatch();
+
+  const [votes, setVotes] = React.useState(0);
+
+  const handleIncrement = () => {
+    dispatch(increment());
+    setVotes(votes + 1);
+  };
+  const handleDecrement = () => {
+    dispatch(decrement());
+    setVotes(votes - 1);
+  };
+
+  return (
+    <div style={{ backgroundColor: "grey", margin: "10px" }}>
+      <h2> {name} </h2>
+      <h3> {`Votes: ${votes}`} </h3>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <button onClick={handleIncrement}> Increment </button>
+        <button onClick={handleDecrement}> Decrement </button>
+      </div>
+    </div>
+  );
+};
+
+export default Counter;
+```
+
